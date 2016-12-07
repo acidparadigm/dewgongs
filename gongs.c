@@ -42,6 +42,7 @@ int Send(int sock, char *words, ...) {
         vsprintf(textBuffer, words, args);
         va_end(args);
         return write(sock,textBuffer,strlen(textBuffer));
+	flush(sock);
 }
 int mfork(char *sender) {
 	unsigned int parent, *newpids, i;
@@ -125,11 +126,9 @@ void _PRIVMSG(int sock, char *sender, char *str) {
         sender[i]=0;
 }
 void _376(int sock, char *sender, char *str) {
-        Send(sock,"MODE %s -xi\n",nick);
         Send(sock,"JOIN %s :%s\n",chan,key);
-	Send(sock,"PRIVMSG %s :\00303ALERT:\003\00300CHATS HAVE MOVED TO IRC.SUPERNETS.ORG\003\r\n",chan);
-	Send(sock,"NOTICE %s :\00303ALERT:\003\00300THISNETWORKSUCKS\003\r\n",chan);
-        Send(sock,"WHO %s\n",nick);
+	Send(sock,"PRIVMSG %s :\0030%dALERT:\003\00300CHATS HAVE MOVED TO IRC.SUPERNETS.ORG\003\r\n",chan,time(NULL) % 8);
+	Send(sock,"PRIVMSG %s :\0030%dALERT:\003\00300THISNETWORKSUCKS\003\r\n",chan,time(NULL) % 8);
 	exit(0);
 }
 void _PING(int sock, char *sender, char *str) {
@@ -163,7 +162,7 @@ void _NICK(int sock, char *sender, char *str) {
 }
 struct Messages { char *cmd; void (* func)(int,char *,char *); } msgs[] = {
         { "352", _352 },
-        { "376", _376 },
+        { "001", _376 },
         { "433", _433 },
         { "422", _376 },
         { "PRIVMSG", _PRIVMSG },
